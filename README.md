@@ -170,11 +170,13 @@ In this instance `PUID=1000` and `PGID=1000`, to find yours use `id user` as bel
 
 This image is designed for Ubuntu and Debian based systems mainly (it works on some others, but ymmv). During container start, it will first check if the wireguard module is already installed and loaded. If not, it will then check if the kernel headers are already installed (in `/usr/src`) and if not, attempt to download the necessary kernel headers from the ubuntu/debian/raspbian repos; then will compile and install the kernel module.
 
+If you're running a host with a more recent kernel, such as Fedora, the wireguard module may be built in. If this is the case, then you only need to make sure it's loaded. To load it, use `modprobe wireguard` on the host. The container should then detect that it's loaded and continue without issue.
+
 If you're on a debian/ubuntu based host with a custom or downstream distro provided kernel (ie. Pop!_OS), the container won't be able to install the kernel headers from the regular ubuntu and debian repos. In those cases, you can try installing the headers on the host via `sudo apt install linux-headers-$(uname -r)` (if distro version) and then add a volume mapping for `/usr/src:/usr/src`, or if custom built, map the location of the existing headers to allow the container to use host installed headers to build the kernel module (tested successful on Pop!_OS, ymmv).
 
 With regards to arm32/64 devices, Raspberry Pi 2-4 running the [official ubuntu images prior to focal](https://ubuntu.com/download/raspberry-pi) or Raspbian Buster are supported out of the box. For all other devices and OSes, you can try installing the kernel headers on the host, and mapping `/usr/src:/usr/src` and it may just work (no guarantees).
 
-This can be run as a server or a client, based on the parameters used. 
+This can be run as a server or a client, based on the parameters used.
 
 ## Server Mode
 If the environment variable `PEERS` is set to a number, the container will run in server mode and the necessary server and peer/client confs will be generated. The peer/client config qr codes will be output in the docker log. They will also be saved in text and png format under `/config/peerX`.
@@ -188,7 +190,7 @@ To display the QR codes of active peers again, you can use the following command
 The templates used for server and peer confs are saved under `/config/templates`. Advanced users can modify these templates and force conf generation by deleting `/config/wg0.conf` and restarting the container.
 
 ## Client Mode
-Do not set the `PEERS` environment variable. Drop your client conf into the config folder as `/config/wg0.conf` and start the container. 
+Do not set the `PEERS` environment variable. Drop your client conf into the config folder as `/config/wg0.conf` and start the container.
 
 If you get IPv6 related errors in the log and connection cannot be established, edit the `AllowedIPs` line in your peer/client wg0.conf to include only `0.0.0.0/0` and not `::/0`; and restart the container.
 
